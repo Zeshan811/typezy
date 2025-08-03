@@ -1,0 +1,8 @@
+/* index.css */
+body,
+.bg-light,
+.bg-dark,
+.text-dark,
+.text-white {
+  transition: all 0.3s ease;
+}
