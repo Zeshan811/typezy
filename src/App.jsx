@@ -34,7 +34,8 @@ function App() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          calculateResults();
+          setFinished(true);
+          calculateResults(true);
           return 0;
         }
         return prev - 1;
@@ -43,24 +44,35 @@ function App() {
     return () => clearInterval(timer);
   }, [startTime, finished]);
 
-  const calculateResults = () => {
-    const timeTakenMinutes = (duration - timeLeft) / 60;
+  useEffect(() => {
+    if (startTime && !finished && input && timeLeft > 0) {
+      calculateResults(false);
+    }
+  }, [input, timeLeft]);
 
+  const calculateResults = (final = false) => {
+    const trimmedInput = input.trim();
+    const minLength = Math.min(trimmedInput.length, paragraph.length);
     let correctChars = 0;
-    const minLen = Math.min(input.length, paragraph.length);
-    for (let i = 0; i < minLen; i++) {
-      if (input[i] === paragraph[i]) correctChars++;
+
+    for (let i = 0; i < minLength; i++) {
+      if (trimmedInput[i].toLowerCase() === paragraph[i].toLowerCase()) {
+        correctChars++;
+      }
     }
 
-    // Monkeytype-style WPM
-    const wpm = timeTakenMinutes > 0 ? (correctChars / 5) / timeTakenMinutes : 0;
+    const timeTakenSec = final
+      ? duration
+      : (Date.now() - startTime) / 1000 || 1;
 
-    // Monkeytype-style Accuracy
-    const accuracy = input.length > 0 ? (correctChars / input.length) * 100 : 0;
+    const timeTakenMin = timeTakenSec / 60;
+    const wpmCalc = timeTakenMin > 0 ? (correctChars / 5) / timeTakenMin : 0;
+    const accCalc = trimmedInput.length > 0
+      ? (correctChars / trimmedInput.length) * 100
+      : 0;
 
-    setWpm(wpm.toFixed(2));
-    setAccuracy(accuracy.toFixed(2));
-    setFinished(true);
+    setWpm(wpmCalc.toFixed(2));
+    setAccuracy(accCalc.toFixed(2));
   };
 
   const reset = (newParagraph = paragraph) => {
@@ -75,6 +87,7 @@ function App() {
   };
 
   const handleInputChange = (e) => {
+    if (timeLeft <= 0 || finished) return;
     if (!startTime) setStartTime(Date.now());
     setInput(e.target.value);
   };
@@ -159,7 +172,7 @@ function App() {
             {paragraph.split('').map((char, idx) => {
               let color = '';
               if (idx < input.length) {
-                color = input[idx] === char ? 'green' : 'red';
+                color = input[idx].toLowerCase() === char.toLowerCase() ? 'green' : 'red';
               }
               return (
                 <span key={idx} style={{ color }}>
@@ -175,7 +188,7 @@ function App() {
             rows="4"
             value={input}
             onChange={handleInputChange}
-            disabled={finished || paragraph === ''}
+            disabled={finished || timeLeft <= 0 || paragraph === ''}
             placeholder="Start typing here..."
             style={{
               backgroundColor: theme === 'dark' ? '#1e1e1e' : 'white',
@@ -185,10 +198,14 @@ function App() {
             }}
           />
 
+          <div className="alert alert-info">
+            <p><strong>WPM:</strong> {wpm}</p>
+            <p><strong>Accuracy:</strong> {accuracy}%</p>
+          </div>
+
           {finished && (
             <div className="alert alert-success">
-              <p><strong>WPM:</strong> {wpm}</p>
-              <p><strong>Accuracy:</strong> {accuracy}%</p>
+              <strong>Test finished!</strong>
             </div>
           )}
 
