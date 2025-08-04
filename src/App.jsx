@@ -172,7 +172,7 @@ function App() {
             {paragraph.split('').map((char, idx) => {
               let color = '';
               if (idx < input.length) {
-                color = input[idx].toLowerCase() === char.toLowerCase() ? 'green' : 'red';
+                color = input[idx] === char ? 'green' : 'red';
               }
               return (
                 <span key={idx} style={{ color }}>
