@@ -56,7 +56,7 @@ function App() {
     let correctChars = 0;
 
     for (let i = 0; i < minLength; i++) {
-      if (trimmedInput[i].toLowerCase() === paragraph[i].toLowerCase()) {
+      if (trimmedInput[i] === paragraph[i]) {
         correctChars++;
       }
     }
